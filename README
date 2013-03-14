@@ -1,0 +1,42 @@
+NAME
+    MIME::Expander - Expands archived, compressed or multi-parted file by
+    MIME mechanism
+
+SYNOPSIS
+        use MIME::Expander;
+        use IO::All;
+
+        my $exp = MIME::Expander->new({
+            expects => [
+                qr(^application/(:?x-)?zip$),
+                ],
+            });
+    
+        my $callback = sub {
+                my $em = shift; # Email::MIME object
+                print $em->content_type, "\n";
+            };
+    
+        my $num_contents = $exp->walk( io($input)->all, $callback );
+    
+        print "total $num_contents are expanded.\n";
+
+DESCRIPTION
+    MIME::Expander is an utility module that expands archived, compressed or
+    multi-parted file by MIME mechanism.
+
+CAVEATS
+    This version only implements in-memory decompression.
+
+AUTHOR
+    WATANABE Hiroaki <hwat@cpan.org>
+
+LICENSE
+    This library is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
+
+SEE ALSO
+    Email::MIME
+
+    File::MMagic
+
