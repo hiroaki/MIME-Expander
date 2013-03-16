@@ -43,6 +43,7 @@ sub new {
     my $self = {
         expects => [],
         guess_type => undef,
+        depth   => undef,
         };
     bless $self, $class;
     return $self->init(@_);
@@ -63,6 +64,9 @@ sub init {
     $self->guess_type($args->{guess_type})
         if( exists $args->{guess_type} );
 
+    $self->depth($args->{depth})
+        if( exists $args->{depth} );
+
     return $self;
 }
 
@@ -74,6 +78,11 @@ sub expects {
             if( defined $self->{expects} and ref($self->{expects}) ne 'ARRAY' );
     }
     $self->{expects};
+}
+
+sub depth {
+    my $self = shift;
+    return @_ ? $self->{depth} = shift : $self->{depth};
 }
 
 sub is_expected {
@@ -176,6 +185,11 @@ sub walk {
         $meta));
 
     # flatten contents contains
+    my $ptr     = 0;
+    my $limit   = 0;
+    my $level   = 1;
+    my $bound   = scalar @medias;
+    $self->debug("initial bound=[$bound]");
     while( my $media = shift @medias ){
         $self->debug("====> shift media, remains=[@{[ scalar @medias ]}]");
 
@@ -183,9 +197,9 @@ sub walk {
         my $plugin  = $self->plugin_for($type);
         $self->debug("* type is [$type], plugin_for [@{[ $plugin || '' ]}]");
 
-        if( $self->is_expected( $type ) or ! $plugin ){
+        if( $limit or $self->is_expected( $type ) or ! $plugin ){
             # expected or un-expandable contents
-            $self->debug("==> expected or un-expandable contents");
+            $self->debug("=> limited, expected or un-expandable contents");
             $callback->($media) if( ref $callback eq 'CODE' );
             ++$c;
         }else{
@@ -195,6 +209,20 @@ sub walk {
             $plugin->expand( $media->{body} , sub {
                 push @medias, $self->_create_media( @_ );
             });
+        }
+
+        ++$ptr;
+        $self->debug("increment ptr=[$ptr] | bound=[$bound] level=[$level]");
+        if( $bound <= $ptr ){
+            
+            if( $self->depth and $self->depth <= $level ){
+                $limit = 1;
+                $self->debug("set limit to TRUE");
+            }
+            $bound += scalar @medias;
+            $self->debug("update bound=[$bound]");
+            ++$level;
+            $self->debug("update level=[$level]");
         }
     }
     
