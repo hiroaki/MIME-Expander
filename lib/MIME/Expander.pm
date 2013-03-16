@@ -119,6 +119,8 @@ sub walk {
     # flatten contents contains
     while( my $media = shift @medias ){
 
+        $self->debug("==> shift media remains=[@{[ scalar @medias ]}]");
+
         my $mime = $self->parsed_mime_type($media->content_type);
         if( ! $mime or $mime =~ m'^application/octet-?stream$' ){ #'
             $mime = $self->guess_content_type($media->body_raw);
@@ -127,21 +129,26 @@ sub walk {
         }
         my $plugin = $self->plugin_for($mime);
         $self->debug("plugin [@{[ $plugin || '' ]}] for [$mime]");
+
         if( $self->is_expected_type( $mime ) or ! $plugin ){
             # expected or un-expandable contents
+            $self->debug("=> expected or un-expandable contents");
             $callback->($media) if( ref $callback eq 'CODE' );
             ++$c;
         }else{
             # expand more
+            $self->debug("=> expand more");
             $plugin->expand( $media->body, sub {
                 my $ref_data = shift;
+                my $meta = shift || {};
                 my $mime = $self->guess_content_type($$ref_data);
                 push @medias, Email::MIME->create(
                     attributes => {
                         content_type => $mime,
                         encoding => 'binary',
+                        filename => $meta->{filename},
                         },
-                        body => $$ref_data,
+                    body => $$ref_data,
                     );
                 });
         }
@@ -171,7 +178,12 @@ MIME::Expander - Expands archived, compressed or multi-parted file by MIME mecha
     
     my $callback = sub {
             my $em = shift; # Email::MIME object
-            print $em->content_type, "\n";
+            my $type = $em->content_type;
+            if( $exp->is_expected_type( $type ) ){
+                print "$type is expected\n";
+            }else{
+                print "$type is not expandable\n";
+            }
         };
     
     my $num_contents = $exp->walk( io($input)->all, $callback );
@@ -181,6 +193,32 @@ MIME::Expander - Expands archived, compressed or multi-parted file by MIME mecha
 =head1 DESCRIPTION
 
 MIME::Expander is an utility module that expands archived, compressed or multi-parted file by MIME mechanism.
+
+=head1 CONSTRUCTOR
+
+The constructor new() creates an instance, and accepts a reference of hash as configurations.
+
+=head1 CLASS METHODS
+
+=head2 guess_content_type( $contents )
+
+=head2 parsed_mime_type( $content_type )
+
+=head1 INSTANCE METHODS
+
+=head2 init
+
+=head2 expects( \@list )
+
+=head2 is_expected_type( $type )
+
+=head2 plugin_for( $type )
+
+=head2 walk( $contents, $callback )
+
+=head1 IMPORT
+
+=head1 PLUGIN
 
 =head1 CAVEATS
 

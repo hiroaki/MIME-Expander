@@ -10,6 +10,8 @@ __PACKAGE__->mk_classdata('ACCEPT_TYPES' => [qw(
     message/rfc822
     )]);
 
+use Email::MIME;
+
 sub expand {
     my $self        = shift;
     my $contents    = shift;
@@ -22,7 +24,9 @@ sub expand {
             push @parts, $part->subparts;
         }else{
             ++$c;
-            $callback->( \$part->body ) if( ref $callback eq 'CODE' );
+            $callback->( \$part->body, {
+                filename => $part->filename,
+                } ) if( ref $callback eq 'CODE' );
         }
     }
 

@@ -22,11 +22,10 @@ sub expand {
     my $uzip = IO::Uncompress::Unzip->new(\$contents, Append => 1)
         or die "unzip failed: $IO::Uncompress::Unzip::UnzipError\n";
 
-    my $status;
-    for( $status = 1; 0 < $status; $status = $uzip->nextStream ){
- 
-        my $name = $uzip->getHeaderInfo->{Name};
-#        debug("expand_application_zip: contains: $name");
+    while( my $status = $uzip->nextStream ){
+
+        die "Error processing as zip: $!"
+            if( $status < 0 );
 
         my $bytes;
         my $buff;
@@ -34,12 +33,11 @@ sub expand {
 
         last if( $bytes < 0 );
 
-        $callback->( \$buff ) if( ref $callback eq 'CODE' );
+        $callback->( \$buff, {
+            filename => $uzip->getHeaderInfo->{Name},
+            } ) if( ref $callback eq 'CODE' );
         ++$c;
     }
-
-    die "Error processing as zip: $!\n"
-        if( $status < 0 );
 
     return $c;
 }

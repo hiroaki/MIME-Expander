@@ -22,9 +22,10 @@ sub expand {
 
     my $iter = Archive::Tar->iter(IO::Scalar->new(\$contents));
     while( my $f = $iter->() ){
-#        debug("expand_application_tar: contains: ".$f->full_path);
         if( $f->has_content and $f->validate ){
-            $callback->( $f->get_content_by_ref ) if( ref $callback eq 'CODE' );
+            $callback->( $f->get_content_by_ref, {
+                filename => $f->full_path,
+                } ) if( ref $callback eq 'CODE' );
             ++$c;
         }
     }
