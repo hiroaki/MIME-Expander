@@ -50,11 +50,6 @@ sub expects {
     return @_ ? $self->{expects} = shift : $self->{expects};
 }
 
-sub plugins {
-    my $self = shift;
-    return @_ ? $self->{plugins} = shift : $self->{plugins};
-}
-
 sub is_expected_type {
     my $self = shift;
     my $type = shift or undef;
