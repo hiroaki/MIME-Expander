@@ -40,7 +40,12 @@ sub new {
 
 sub init {
     my $self = shift;
-    my $args = shift || {};
+    my $args;
+    if( 0 == @_ % 2 ){
+        $args = { @_ }
+    }else{
+        $args = shift || {};
+    }
     $self->expects($args->{expects}) if( exists $args->{expects} );
     return $self;
 }
@@ -50,7 +55,7 @@ sub expects {
     return @_ ? $self->{expects} = shift : $self->{expects};
 }
 
-sub is_expected_type {
+sub is_expected {
     my $self = shift;
     my $type = shift or undef;
     for my $regexp ( map { ref $_ ? $_ : qr/^$_$/ } @{$self->expects} ){
@@ -59,16 +64,16 @@ sub is_expected_type {
     return ();
 }
 
-sub guess_content_type {
+sub guess_mime_type {
     File::MMagic->new->checktype_contents($_[1]) || 'application/octet-stream';
 }
 
-sub parsed_mime_type {
+sub mime_type_by_content_type {
     my $data = Email::MIME::ContentType::parse_content_type($_[1]);
     if( $data->{discrete} and $data->{composite} ){
         return join('/',$data->{discrete}, $data->{composite});
     }
-    return ();
+    return undef;
 }
 
 sub plugin_for {
@@ -121,16 +126,16 @@ sub walk {
 
         $self->debug("==> shift media remains=[@{[ scalar @medias ]}]");
 
-        my $mime = $self->parsed_mime_type($media->content_type);
+        my $mime = $self->mime_type_by_content_type($media->content_type);
         if( ! $mime or $mime =~ m'^application/octet-?stream$' ){ #'
-            $mime = $self->guess_content_type($media->body_raw);
+            $mime = $self->guess_mime_type($media->body_raw);
             # modify media has content type
             $media->content_type_set($mime);
         }
         my $plugin = $self->plugin_for($mime);
         $self->debug("plugin [@{[ $plugin || '' ]}] for [$mime]");
 
-        if( $self->is_expected_type( $mime ) or ! $plugin ){
+        if( $self->is_expected( $mime ) or ! $plugin ){
             # expected or un-expandable contents
             $self->debug("=> expected or un-expandable contents");
             $callback->($media) if( ref $callback eq 'CODE' );
@@ -141,7 +146,7 @@ sub walk {
             $plugin->expand( $media->body, sub {
                 my $ref_data = shift;
                 my $meta = shift || {};
-                my $mime = $self->guess_content_type($$ref_data);
+                my $mime = $self->guess_mime_type($$ref_data);
                 push @medias, Email::MIME->create(
                     attributes => {
                         content_type => $mime,
@@ -179,7 +184,7 @@ MIME::Expander - Expands archived, compressed or multi-parted file by MIME mecha
     my $callback = sub {
             my $em = shift; # Email::MIME object
             my $type = $em->content_type;
-            if( $exp->is_expected_type( $type ) ){
+            if( $exp->is_expected( $type ) ){
                 print "$type is expected\n";
             }else{
                 print "$type is not expandable\n";
@@ -200,25 +205,43 @@ The constructor new() creates an instance, and accepts a reference of hash as co
 
 =head1 CLASS METHODS
 
-=head2 guess_content_type( $contents )
+=head2 guess_mime_type( $contents )
 
-=head2 parsed_mime_type( $content_type )
+TODO
+
+=head2 mime_type_by_content_type( $content_type )
+
+TODO
 
 =head1 INSTANCE METHODS
 
 =head2 init
 
+TODO
+
 =head2 expects( \@list )
 
-=head2 is_expected_type( $type )
+TODO
+
+=head2 is_expected( $type )
+
+TODO
 
 =head2 plugin_for( $type )
 
+TODO
+
 =head2 walk( $contents, $callback )
+
+TODO
 
 =head1 IMPORT
 
+TODO
+
 =head1 PLUGIN
+
+TODO - See also L<MIME::Expander::Plugin>
 
 =head1 CAVEATS
 
