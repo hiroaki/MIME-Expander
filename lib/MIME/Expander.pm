@@ -65,10 +65,11 @@ sub is_expected {
 }
 
 sub guess_type {
-    File::MMagic->new->checktype_contents($_[1]) || 'application/octet-stream';
+    File::MMagic->new->checktype_contents(${$_[1]}) || 'application/octet-stream';
 }
 
 sub canonical_content_type {
+    return undef unless( defined $_[1] );
     my $data = Email::MIME::ContentType::parse_content_type($_[1]);
     if( $data->{discrete} and $data->{composite} ){
         return join('/',$data->{discrete}, $data->{composite});
@@ -107,32 +108,39 @@ sub plugin_for {
     return $plugin;
 }
 
+sub _create_media {
+    my $self     = shift;
+    my $ref_data = shift or die "missing mandatory parameter";
+    my $meta     = shift || {};
+
+    my $type = $self->canonical_content_type($meta->{content_type});
+    if( ! $type or $type =~ m'^application/octet-?stream$' ){ #'
+        $type = $self->guess_type($ref_data);
+    }
+    Email::MIME->create(
+        attributes => {
+            content_type    => $type,
+            encoding        => 'binary',
+            filename        => $meta->{filename},
+            },
+        body => $$ref_data,
+        );
+}
+
 sub walk {
     my $self        = shift;
     my $contents    = shift;
     my $callback    = shift;
     my $c           = 0;
 
-    my @medias = (Email::MIME->create(
-        attributes => {
-            content_type    => 'application/octet-stream',
-            encoding        => 'binary',
-            },
-            body => $contents,
-        ));
+    my @medias = ($self->_create_media(\$contents));
 
     # flatten contents contains
     while( my $media = shift @medias ){
-
         $self->debug("====> shift media remains=[@{[ scalar @medias ]}]");
 
-        my $type = $self->canonical_content_type($media->content_type);
-        if( ! $type or $type =~ m'^application/octet-?stream$' ){ #'
-            $type = $self->guess_type($media->body_raw);
-            # modify content type of media
-            $media->content_type_set($type);
-        }
-        my $plugin = $self->plugin_for($type);
+        my $type    = $media->content_type;
+        my $plugin  = $self->plugin_for($type);
         $self->debug("* type is [$type], plugin_for [@{[ $plugin || '' ]}]");
 
         if( $self->is_expected( $type ) or ! $plugin ){
@@ -144,18 +152,8 @@ sub walk {
             # expand more
             $self->debug("==> expand more");
             $plugin->expand( $media->body, sub {
-                my $ref_data = shift;
-                my $meta = shift || {};
-                my $type = $self->guess_type($$ref_data);
-                push @medias, Email::MIME->create(
-                    attributes => {
-                        content_type => $type,
-                        encoding => 'binary',
-                        filename => $meta->{filename},
-                        },
-                    body => $$ref_data,
-                    );
-                });
+                push @medias, $self->_create_media( @_ );
+            });
         }
     }
     
@@ -205,7 +203,7 @@ The constructor new() creates an instance, and accepts a reference of hash as co
 
 =head1 CLASS METHODS
 
-=head2 guess_type( $contents )
+=head2 guess_type( \$contents )
 
 TODO
 
