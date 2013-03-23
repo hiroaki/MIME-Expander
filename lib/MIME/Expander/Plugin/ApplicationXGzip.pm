@@ -18,7 +18,9 @@ sub expand {
     my $callback    = shift;
     my $c           = 0;
 
-    my $z = IO::Uncompress::Gunzip->new(\$contents, Append => 1) 
+    my $z = IO::Uncompress::Gunzip->new(
+        ref $contents eq 'SCALAR' ? $contents : \$contents
+        , Append => 1)
         or die "gunzip failed: $IO::Uncompress::Gunzip::GunzipError";
 
     my $buf;

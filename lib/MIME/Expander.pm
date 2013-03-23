@@ -133,7 +133,9 @@ sub walk {
     my $callback    = shift;
     my $c           = 0;
 
-    my @medias = ($self->_create_media(\$contents));
+    my @medias = ($self->_create_media(
+        ref $contents eq 'SCALAR' ? $contents : \$contents
+        ));
 
     # flatten contents contains
     while( my $media = shift @medias ){
@@ -151,7 +153,8 @@ sub walk {
         }else{
             # expand more
             $self->debug("==> expand more");
-            $plugin->expand( $media->body, sub {
+            # note: undocumented api is used ->{body}
+            $plugin->expand( $media->{body} , sub {
                 push @medias, $self->_create_media( @_ );
             });
         }

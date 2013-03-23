@@ -20,7 +20,9 @@ sub expand {
     my $callback    = shift;
     my $c           = 0;
 
-    my $iter = Archive::Tar->iter(IO::Scalar->new(\$contents));
+    my $iter = Archive::Tar->iter(IO::Scalar->new(
+        ref $contents eq 'SCALAR' ? $contents : \$contents
+        ));
     while( my $f = $iter->() ){
         if( $f->has_content and $f->validate ){
             $callback->( $f->get_content_by_ref, {

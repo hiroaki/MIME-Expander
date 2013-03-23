@@ -18,7 +18,9 @@ sub expand {
     my $callback    = shift;
     my $c           = 0;
 
-    my @parts = ( Email::MIME->new( $contents ) );
+    my @parts = (Email::MIME->new(
+        ref $contents eq 'SCALAR' ? $contents : \$contents
+        ));
     while( my $part = shift @parts ){
         if( 1 < $part->parts ){
             push @parts, $part->subparts;

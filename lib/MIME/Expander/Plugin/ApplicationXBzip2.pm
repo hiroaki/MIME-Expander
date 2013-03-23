@@ -18,7 +18,9 @@ sub expand {
     my $callback    = shift;
     my $c           = 0;
 
-    my $z = IO::Uncompress::Bunzip2->new(\$contents, Append => 1) 
+    my $z = IO::Uncompress::Bunzip2->new(
+        ref $contents eq 'SCALAR' ? $contents : \$contents
+        , Append => 1) 
         or die "bzip2 failed: $IO::Uncompress::Bunzip2::Bunzip2Error";
 
     my $buf;
