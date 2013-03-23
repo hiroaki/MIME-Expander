@@ -44,3 +44,32 @@ sub expand {
 
 1;
 __END__
+
+
+=pod
+
+=head1 NAME
+
+MIME::Expander::Plugin::ApplicationZip - a plugin for MIME::Expander
+
+=head1 SYNOPSIS
+
+    my $expander = MIME::Expander::Plugin::ApplicationZip->new;
+    $expander->expand(\$data, sub {
+            my $ref_expanded_data = shift;
+            my $metadata = shift || {};
+            print $metadata->{content_type}, "\n";
+            print $metadata->{filename}, "\n";
+        });
+
+=head1 DESCRIPTION
+
+Expand data that media type is "application/zip" or "application/x-zip".
+
+=head1 SEE ALSO
+
+L<MIME::Expander>
+L<MIME::Expander::Plugin>
+L<IO::Uncompress::Unzip>
+
+=cut
