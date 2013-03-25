@@ -14,7 +14,10 @@ SYNOPSIS
     
         my $callback = sub {
                 my $em = shift; # Email::MIME object
-                print $em->content_type, "\n";
+                my $type = $em->content_type;
+                if( $exp->is_expected( $type ) ){
+                    print "$type is expected\n";
+                }
             };
     
         my $num_contents = $exp->walk( io($input)->all, $callback );
@@ -24,6 +27,135 @@ SYNOPSIS
 DESCRIPTION
     MIME::Expander is an utility module that expands archived, compressed or
     multi-parted file by MIME mechanism.
+
+CONSTRUCTOR AND ACCESSORS
+    The constructor new() creates an instance, and accepts a reference of
+    hash as configurations.
+
+    Following key of hash are available, and there is an access method of a
+    same name.
+
+    expects
+        A value is a list reference and the elements are string or regular
+        expression.
+
+        If this parameter is set, then the walk() will not expand contents
+        of specified mime types.
+
+    guess_type
+        A value is a code reference.
+
+        The routine have to determine the type of the data which will be
+        inputted.
+
+        The parameters passed to the routine are a reference of scalar to
+        contents, and information as reference of hash.
+
+        Although the information may have a "filename", however depending on
+        implements of each expander module, it may not be expectable.
+
+        The routine have to return mime type string, or undef. If value of
+        return is false value, that means "application/octet-stream".
+
+        For example, sets routine which determine text or jpeg.
+
+            my $exp = MIME::Expander->new({
+                guess_type => sub {
+                        my $ref_contents = shift;
+                        my $info         = shift || {};
+                        if( defined $info->{filename} ){
+                            my ($suffix) = $info->{filename} =~ /\.(.+)$/;
+                            if( defined $suffix ){
+                                if( lc $suffix eq 'txt' ){
+                                    return 'text/plain';
+                                }elsif( $suffix =~ /^jpe?g$/i ){
+                                    return 'image/jpeg';
+                                }
+                            }
+                        }
+                    },
+                });
+
+        There is default routine that will call guess_type_default() method.
+
+    depth
+        A value is a native number.
+
+        Please see "walk".
+
+CLASS METHODS
+  canonical_content_type( $content_type )
+    This is an utility for unifying header "Content-type" with parameters.
+
+        MIME::Expander->canonical_content_type(
+            "text/plain; charset=ISO-2022-JP");
+        #=> "text/plain"
+
+INSTANCE METHODS
+  init
+    Initialize instance. This is for override.
+
+  expects( \@list )
+    Accessor to field "expects".
+
+  is_expected( $type )
+    Is $type the contents set to field "expects" ?
+
+  depth( $native_number )
+    Accessor to field "depth".
+
+  guess_type( \&code )
+    Accessor to field "guess_type".
+
+  guess_type_default( \$contents )
+    It is called when the field "guess_type" is not set.
+
+  guess_type_by_contents( \$contents, \%info )
+    The routine "guess_type" actually determines mime type.
+
+    Optional %info is as hint for determing mime type. It will be passed to
+    a "guess_type" routine directly.
+
+    "filename" can be included in %info.
+
+  plugin_for( $type )
+    TODO
+
+  walk( \$data, $callback )
+    If the $data which can be expanded in the inputted data exists, it will
+    be expanded and passed to callback.
+
+    The expanded data are further checked and processed recursively.
+
+    The recursive depth is to the level of the value of "depth" field.
+
+    A media object which is a Email::MIME, is passed to the callback
+    routine, They are the results of this module.
+
+    As the work, it sometimes often saves. However the file name may not be
+    obtained with the specification of expander module. But it may be used,
+    since it is set to "filename" attribute when it exists.
+
+        $me->expand( \$data, sub {
+                my $email = shift;
+                my $name  = $email->invent_filename;
+                open my $fh, ">$name" or die;
+                $fh->print($email->body_raw);
+                close $fh;
+            });
+
+    See also Email::MIME for $email object.
+
+    Only this $email object has rules on this MIME::Expander utility class.
+    The expanded data is set to "body" and the Content-Transfer-Encoding is
+    "binary". Therefore, in order to take out the expanded contents, please
+    use "body_raw" method.
+
+IMPORT
+    TODO
+
+PLUGIN
+    TODO - See also MIME::Expander::Plugin.
 
 CAVEATS
     This version only implements in-memory decompression.
