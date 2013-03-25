@@ -22,6 +22,15 @@ sub import {
     @EnabledPlugins = @_;
 }
 
+sub canonical_content_type {
+    return undef unless( defined $_[1] );
+    my $data = Email::MIME::ContentType::parse_content_type($_[1]);
+    if( $data->{discrete} and $data->{composite} ){
+        return join('/',$data->{discrete}, $data->{composite});
+    }
+    return undef;
+}
+
 sub debug {
     shift;
     my $msg = shift or return;
@@ -33,6 +42,7 @@ sub new {
     $class = ref $class || $class;
     my $self = {
         expects => [],
+        guess_type => undef,
         };
     bless $self, $class;
     return $self->init(@_);
@@ -46,13 +56,24 @@ sub init {
     }else{
         $args = shift || {};
     }
-    $self->expects($args->{expects}) if( exists $args->{expects} );
+
+    $self->expects($args->{expects})
+        if( exists $args->{expects} );
+
+    $self->guess_type($args->{guess_type})
+        if( exists $args->{guess_type} );
+
     return $self;
 }
 
 sub expects {
     my $self = shift;
-    return @_ ? $self->{expects} = shift : $self->{expects};
+    if( @_ ){
+        $self->{expects} = shift;
+        die "setting value is not acceptable, it requires an reference of ARRAY"
+            if( defined $self->{expects} and ref($self->{expects}) ne 'ARRAY' );
+    }
+    $self->{expects};
 }
 
 sub is_expected {
@@ -65,16 +86,31 @@ sub is_expected {
 }
 
 sub guess_type {
-    File::MMagic->new->checktype_contents(${$_[1]}) || 'application/octet-stream';
+    my $self = shift;
+    if( @_ ){
+        $self->{guess_type} = shift;
+        die "setting value is not acceptable, it requires an reference of CODE"
+            if( defined $self->{guess_type} and ref($self->{guess_type}) ne 'CODE' );
+    }
+    $self->{guess_type};
 }
 
-sub canonical_content_type {
-    return undef unless( defined $_[1] );
-    my $data = Email::MIME::ContentType::parse_content_type($_[1]);
-    if( $data->{discrete} and $data->{composite} ){
-        return join('/',$data->{discrete}, $data->{composite});
+sub guess_type_default {
+    File::MMagic->new->checktype_contents(${$_[1]});
+}
+
+sub guess_type_by_contents {
+    my $self     = shift;
+    my $ref_data = shift or die "missing mandatory parameter";
+    my $meta     = shift || {};
+    
+    my $type;
+    if( ref($self->guess_type) eq 'CODE' ){
+        $type = $self->guess_type->($ref_data, $meta);
+    }else{
+        $type = $self->guess_type_default($ref_data, $meta);
     }
-    return undef;
+    return ($type || 'application/octet-stream');
 }
 
 sub plugin_for {
@@ -115,8 +151,9 @@ sub _create_media {
 
     my $type = $self->canonical_content_type($meta->{content_type});
     if( ! $type or $type =~ m'^application/octet-?stream$' ){ #'
-        $type = $self->guess_type($ref_data);
+        $type = $self->guess_type_by_contents($ref_data, $meta);
     }
+
     Email::MIME->create(
         attributes => {
             content_type    => $type,
@@ -131,15 +168,16 @@ sub walk {
     my $self        = shift;
     my $contents    = shift;
     my $callback    = shift;
+    my $meta        = shift || {};
     my $c           = 0;
 
     my @medias = ($self->_create_media(
-        ref $contents eq 'SCALAR' ? $contents : \$contents
-        ));
+        ref $contents eq 'SCALAR' ? $contents : \$contents,
+        $meta));
 
     # flatten contents contains
     while( my $media = shift @medias ){
-        $self->debug("====> shift media remains=[@{[ scalar @medias ]}]");
+        $self->debug("====> shift media, remains=[@{[ scalar @medias ]}]");
 
         my $type    = $media->content_type;
         my $plugin  = $self->plugin_for($type);
@@ -187,8 +225,6 @@ MIME::Expander - Expands archived, compressed or multi-parted file by MIME mecha
             my $type = $em->content_type;
             if( $exp->is_expected( $type ) ){
                 print "$type is expected\n";
-            }else{
-                print "$type is not expandable\n";
             }
         };
     
@@ -206,10 +242,6 @@ The constructor new() creates an instance, and accepts a reference of hash as co
 
 =head1 CLASS METHODS
 
-=head2 guess_type( \$contents )
-
-TODO
-
 =head2 canonical_content_type( $content_type )
 
 TODO
@@ -225,6 +257,18 @@ TODO
 TODO
 
 =head2 is_expected( $type )
+
+TODO
+
+=head2 guess_type( \&code )
+
+TODO
+
+=head2 guess_type_default( \$contents )
+
+TODO
+
+=head2 guess_type_by_contents( \$contents, \%meta )
 
 TODO
 
