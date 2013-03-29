@@ -174,7 +174,7 @@ sub _create_media {
             encoding        => 'binary',
             filename        => $info->{filename},
             },
-        body => $$ref_data,
+        body => $ref_data,
         );
 }
 
