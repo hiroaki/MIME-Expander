@@ -43,12 +43,15 @@ CONSTRUCTOR AND ACCESSORS
         of specified mime types.
 
     guess_type
-        A value is a code reference.
+        A value is a reference of code or reference of array which contains
+        name of the "guess classes". In the case of a code, it is only
+        performed for determining the mime type. In array, it performs in
+        order of the element, and what was determined first is adopted.
 
-        The routine have to determine the type of the data which will be
+        Each routines have to determine the type of the data which will be
         inputted.
 
-        The parameters passed to the routine are a reference of scalar to
+        The parameters passed to a routine are a reference of scalar to
         contents, and information as reference of hash.
 
         Although the information may have a "filename", however depending on
@@ -76,7 +79,15 @@ CONSTRUCTOR AND ACCESSORS
                     },
                 });
 
-        There is default routine that will call guess_type_default() method.
+        When useing the "guess classes", like this, a package name is
+        omissible:
+
+            my $exp = MIME::Expander->new({
+                guess_type => [qw/FileName MMagic/],
+                });
+
+        Anyway, in not specifying, MIME::Expander::Guess::MMagic is adopted
+        by default.
 
     depth
         A value is a native number.
@@ -106,9 +117,6 @@ INSTANCE METHODS
 
   guess_type( \&code )
     Accessor to field "guess_type".
-
-  guess_type_default( \$contents )
-    It is called when the field "guess_type" is not set.
 
   guess_type_by_contents( \$contents, \%info )
     The routine "guess_type" actually determines mime type.
@@ -155,7 +163,9 @@ IMPORT
     TODO
 
 PLUGIN
-    TODO - See also MIME::Expander::Plugin.
+    TODO
+
+    See also MIME::Expander::Plugin.
 
 CAVEATS
     This version only implements in-memory decompression.
@@ -169,6 +179,4 @@ LICENSE
 
 SEE ALSO
     Email::MIME
-
-    File::MMagic
 
