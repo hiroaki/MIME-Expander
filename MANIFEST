@@ -1,6 +1,9 @@
 README
 Changes
 lib/MIME/Expander.pm
+lib/MIME/Expander/Guess.pm
+lib/MIME/Expander/Guess/FileName.pm
+lib/MIME/Expander/Guess/MMagic.pm
 lib/MIME/Expander/Plugin.pm
 lib/MIME/Expander/Plugin/ApplicationTar.pm
 lib/MIME/Expander/Plugin/ApplicationXBzip2.pm

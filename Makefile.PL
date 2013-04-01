@@ -13,5 +13,6 @@ WriteMakefile(
         'Archive::Tar'              => '1.82',
         'IO::Scalar'                => '2.110',
         'IO::Uncompress::Unzip'     => '2.048',
+        'MIME::Type::FileName'      => '1.00',
         },
     );

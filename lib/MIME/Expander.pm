@@ -8,13 +8,18 @@ $VERSION = '0.01';
 use vars qw($DEBUG);
 $DEBUG = 0;
 
+use vars qw($PrefixGuess $PrefixPlugin);
+BEGIN {
+    $PrefixGuess     = 'MIME::Expander::Guess';
+    $PrefixPlugin    = 'MIME::Expander::Plugin';
+}
+
 use Email::MIME;
 use Email::MIME::ContentType ();
 use Module::Load;
-use Module::Pluggable sub_name => 'expanders';
+use Module::Pluggable search_path => $PrefixPlugin, sub_name => 'expanders';
 
-my $PrefixPlugin   = 'MIME::Expander::Plugin';
-my @EnabledPlugins = ();
+my @EnabledPlugins  = ();
 
 sub import {
     my $class = shift;
@@ -108,21 +113,30 @@ sub guess_type {
     return $self->{guess_type};
 }
 
-sub guess_type_default {
-    Module::Load::load File::MMagic;
-    return File::MMagic->new->checktype_contents(${$_[1]});
-}
-
 sub guess_type_by_contents {
     my $self     = shift;
     my $ref_data = shift or die "missing mandatory parameter";
     my $info     = shift || {};
     
-    my $type;
-    if( ref($self->guess_type) eq 'CODE' ){
+    my $type    = undef;
+    my $routine = $self->guess_type;
+
+    if(     ref $routine eq 'CODE' ){
         $type = $self->guess_type->($ref_data, $info);
+
     }else{
-        $type = $self->guess_type_default($ref_data, $info);
+        my @routines;
+        if( ref $routine eq 'ARRAY' ){
+            @routines = @$routine;
+        }else{
+            @routines = ('MMagic');
+        }
+        for my $klass ( @routines ){
+            $klass = join('::', $PrefixGuess, $klass) if( $klass !~ /:/ );
+            Module::Load::load $klass;
+            $type = $klass->type($ref_data, $info);
+            last if( $type );
+        }
     }
     return ($type || 'application/octet-stream');
 }
@@ -288,12 +302,14 @@ If this parameter is set, then the walk() will not expand contents of specified 
 
 =item guess_type
 
-A value is a code reference.
+A value is a reference of code or reference of array which contains name of the "guess classes".
+In the case of a code, it is only performed for determining the mime type.
+In array, it performs in order of the element, and what was determined first is adopted.
 
-The routine have to determine the type of the data which will be inputted.
+Each routines have to determine the type of the data which will be inputted.
 
-The parameters passed to the routine are a reference of scalar to contents, 
-and information as reference of hash. 
+The parameters passed to a routine are a reference of scalar to contents, 
+and information as reference of hash.
 
 Although the information may have a "filename",
 however depending on implements of each expander module, it may not be expectable.
@@ -320,7 +336,13 @@ For example, sets routine which determine text or jpeg.
             },
         });
 
-There is default routine that will call guess_type_default() method.
+When useing the "guess classes", like this, a package name is omissible:
+
+    my $exp = MIME::Expander->new({
+        guess_type => [qw/FileName MMagic/],
+        });
+
+Anyway, in not specifying, L<MIME::Expander::Guess::MMagic> is adopted by default. 
 
 =item depth
 
@@ -361,10 +383,6 @@ Accessor to field "depth".
 =head2 guess_type( \&code )
 
 Accessor to field "guess_type".
-
-=head2 guess_type_default( \$contents )
-
-It is called when the field "guess_type" is not set.
 
 =head2 guess_type_by_contents( \$contents, \%info )
 
@@ -415,7 +433,9 @@ TODO
 
 =head1 PLUGIN
 
-TODO - See also L<MIME::Expander::Plugin>.
+TODO
+
+See also L<MIME::Expander::Plugin>.
 
 =head1 CAVEATS
 
@@ -433,7 +453,5 @@ it under the same terms as Perl itself.
 =head1 SEE ALSO
 
 L<Email::MIME>
-
-L<File::MMagic>
 
 =cut
