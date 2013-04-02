@@ -19,7 +19,10 @@ use Email::MIME::ContentType ();
 use Module::Load;
 use Module::Pluggable search_path => $PrefixPlugin, sub_name => 'expanders';
 
-my @EnabledPlugins  = ();
+use vars qw(@EnabledPlugins);
+BEGIN {
+    @EnabledPlugins = ();
+}
 
 sub import {
     my $class = shift;
@@ -62,14 +65,14 @@ sub init {
         $args = shift || {};
     }
 
-    $self->expects($args->{expects})
-        if( exists $args->{expects} );
+    $self->expects(
+        exists $args->{expects} ? $args->{expects} : [] );
 
-    $self->guess_type($args->{guess_type})
-        if( exists $args->{guess_type} );
+    $self->guess_type(
+        exists $args->{guess_type} ? $args->{guess_type} : undef );
 
-    $self->depth($args->{depth})
-        if( exists $args->{depth} );
+    $self->depth(
+        exists $args->{depth} ? $args->{depth} : undef );
 
     return $self;
 }
@@ -87,6 +90,9 @@ sub expects {
 sub is_expected {
     my $self = shift;
     my $type = shift or undef;
+    die "invalid type $type that has not looks as mime/type"
+        if( $type !~ m,^.+/.+$, );
+    return () unless( $self->expects );
     for my $regexp ( map { ref $_ ? $_ : qr/^$_$/ } @{$self->expects} ){
         return 1 if( $type =~ $regexp );
     }
@@ -107,8 +113,10 @@ sub guess_type {
     my $self = shift;
     if( @_ ){
         $self->{guess_type} = shift;
-        die "setting value is not acceptable, it requires an reference of CODE"
-            if( defined $self->{guess_type} and ref($self->{guess_type}) ne 'CODE' );
+        die "setting value is not acceptable, it requires an reference of CODE or ARRAY"
+            if( defined $self->{guess_type} 
+            and ref($self->{guess_type}) ne 'CODE'
+            and ref($self->{guess_type}) ne 'ARRAY');
     }
     return $self->{guess_type};
 }
@@ -366,7 +374,7 @@ This is an utility for unifying header "Content-type" with parameters.
 
 =head2 init
 
-Initialize instance. This is for override.
+Initialize instance. This is for overriding.
 
 =head2 expects( \@list )
 
