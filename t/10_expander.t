@@ -105,70 +105,70 @@ require MIME::Expander; # don't "use" for import tests
     ok( $@, 'depth received invalid value');
 }
 
-# guess_type
+# guesser
 {;
     my $me = MIME::Expander->new;
     my $v;
 
-    is( $me->guess_type, undef, 'guess_type default');
+    is( $me->guesser, undef, 'guesser default');
 
-    $v = $me->guess_type(['FileName','MMagic']);
-    is( ref($v), 'ARRAY', 'guess_type set list');
-    $v = $me->guess_type;
-    is( ref($v), 'ARRAY', 'guess_type get');
+    $v = $me->guesser(['FileName','MMagic']);
+    is( ref($v), 'ARRAY', 'guesser set list');
+    $v = $me->guesser;
+    is( ref($v), 'ARRAY', 'guesser get');
     is_deeply( $v, ['FileName','MMagic'], 'expects get list is expected');
 
-    $v = $me->guess_type(sub {'yes'});
-    is( ref($v), 'CODE', 'guess_type set code');
-    $v = $me->guess_type;
-    is( ref($v), 'CODE', 'guess_type get');
-    is( $v->(), 'yes', 'guess_type get code is expected');
+    $v = $me->guesser(sub {'yes'});
+    is( ref($v), 'CODE', 'guesser set code');
+    $v = $me->guesser;
+    is( ref($v), 'CODE', 'guesser get');
+    is( $v->(), 'yes', 'guesser get code is expected');
 
     $me->depth(undef);
-    is( $me->depth, undef, 'guess_type allows undef');
+    is( $me->depth, undef, 'guesser allows undef');
 
-    eval { $me->guess_type('Guess') };
-    ok( $@, 'guess_type received invalid value');
+    eval { $me->guesser('Guess') };
+    ok( $@, 'guesser received invalid value');
 }
 
-# guess_type_by_contents
+# guess_type_of
 {;
     my $me = MIME::Expander->new;
     
     # default routine
-    is( $me->guess_type_by_contents(
+    is( $me->guess_type_of(
         \ 'this is text', { filename => 'plain.txt' } ),
-        'text/plain', 'guess_type_by_contents using default - text');
+        'text/plain', 'guess_type_of using default - text');
 
-    is( $me->guess_type_by_contents(
+    is( $me->guess_type_of(
         \ pack('C*',0x25,0x50,0x44,0x46,0x2d,0x31,0x2e,0x33,0x0a,0x25,0xc4,0xe5,0xf2,0xe5,0xeb,0xa7), { filename => 'plain.pdf' } ),
-        'application/pdf', 'guess_type_by_contents using default - pdf');
+        'application/pdf', 'guess_type_of using default - pdf');
 
     # switch routine
-    $me->guess_type(['FileName','MMagic']);
+    $me->guesser(['FileName','MMagic']);
     
-    is( $me->guess_type_by_contents(
+    is( $me->guess_type_of(
         \ 'this is text', { filename => undef }),
-        'text/plain', 'guess_type_by_contents using multi-guessers - text');
+        'text/plain', 'guess_type_of using multi-guessers - text');
 
-    is( $me->guess_type_by_contents(
+    is( $me->guess_type_of(
         \ pack('C*', 0x00), { filename => 'plain.txt' }), # fake suffix
-        'text/plain', 'guess_type_by_contents using guessers - text');
+        'text/plain', 'guess_type_of using guessers - text');
 
     # switch routine again
-    $me->guess_type(sub {
+    $me->guesser(sub {
         my ($ref_data, $info) = @_;
         return 'text/plain' if( $$ref_data =~ /text/ );
         return undef;
         });
 
-    is( $me->guess_type_by_contents(
+    is( $me->guess_type_of(
         \ 'this is text',{ filename => 'plain.txt' } ),
-        'text/plain', 'guess_type_by_contents using code - text');
+        'text/plain', 'guess_type_of using code - text');
 
-    is( $me->guess_type_by_contents(
+    is( $me->guess_type_of(
         \ { pack('C*',0x01,0x02) },{ filename => 'plain.pdf' } ),
-        'application/octet-stream', 'guess_type_by_contents using code - unknown');
+        'application/octet-stream', 'guess_type_of using code - unknown');
 }
 
 # plugin_for

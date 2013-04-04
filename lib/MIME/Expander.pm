@@ -8,21 +8,18 @@ $VERSION = '0.01';
 use vars qw($DEBUG);
 $DEBUG = 0;
 
-use vars qw($PrefixGuess $PrefixPlugin);
+use vars qw($PrefixGuess $PrefixPlugin @DefaultGuesser @EnabledPlugins);
 BEGIN {
-    $PrefixGuess     = 'MIME::Expander::Guess';
-    $PrefixPlugin    = 'MIME::Expander::Plugin';
+    $PrefixGuess    = 'MIME::Expander::Guess';
+    $PrefixPlugin   = 'MIME::Expander::Plugin';
+    @DefaultGuesser = ('MMagic', 'FileName');
+    @EnabledPlugins = ();
 }
 
 use Email::MIME;
 use Email::MIME::ContentType ();
 use Module::Load;
 use Module::Pluggable search_path => $PrefixPlugin, sub_name => 'expanders';
-
-use vars qw(@EnabledPlugins);
-BEGIN {
-    @EnabledPlugins = ();
-}
 
 sub import {
     my $class = shift;
@@ -49,7 +46,7 @@ sub new {
     $class = ref $class || $class;
     my $self = {
         expects     => [],
-        guess_type  => undef,
+        guesser     => undef,
         depth       => undef,
         };
     bless  $self, $class;
@@ -68,8 +65,8 @@ sub init {
     $self->expects(
         exists $args->{expects} ? $args->{expects} : [] );
 
-    $self->guess_type(
-        exists $args->{guess_type} ? $args->{guess_type} : undef );
+    $self->guesser(
+        exists $args->{guesser} ? $args->{guesser} : undef );
 
     $self->depth(
         exists $args->{depth} ? $args->{depth} : undef );
@@ -109,35 +106,35 @@ sub depth {
     return $self->{depth};
 }
 
-sub guess_type {
+sub guesser {
     my $self = shift;
     if( @_ ){
-        $self->{guess_type} = shift;
+        $self->{guesser} = shift;
         die "setting value is not acceptable, it requires an reference of CODE or ARRAY"
-            if( defined $self->{guess_type} 
-            and ref($self->{guess_type}) ne 'CODE'
-            and ref($self->{guess_type}) ne 'ARRAY');
+            if( defined $self->{guesser} 
+            and ref($self->{guesser}) ne 'CODE'
+            and ref($self->{guesser}) ne 'ARRAY');
     }
-    return $self->{guess_type};
+    return $self->{guesser};
 }
 
-sub guess_type_by_contents {
+sub guess_type_of {
     my $self     = shift;
     my $ref_data = shift or die "missing mandatory parameter";
     my $info     = shift || {};
     
     my $type    = undef;
-    my $routine = $self->guess_type;
+    my $routine = $self->guesser;
 
     if(     ref $routine eq 'CODE' ){
-        $type = $self->guess_type->($ref_data, $info);
+        $type = $self->guesser->($ref_data, $info);
 
     }else{
         my @routines;
         if( ref $routine eq 'ARRAY' ){
             @routines = @$routine;
         }else{
-            @routines = ('MMagic', 'FileName');
+            @routines = @DefaultGuesser;
         }
         for my $klass ( @routines ){
             $klass = join('::', $PrefixGuess, $klass) if( $klass !~ /:/ );
@@ -187,7 +184,7 @@ sub _create_media {
 
     my $type = $self->canonical_content_type($info->{content_type});
     if( ! $type or $type =~ m'^application/octet-?stream$' ){ #'
-        $type = $self->guess_type_by_contents($ref_data, $info);
+        $type = $self->guess_type_of($ref_data, $info);
     }
 
     return Email::MIME->create(
@@ -308,7 +305,7 @@ A value is a list reference and the elements are string or regular expression.
 
 If this parameter is set, then the walk() will not expand contents of specified mime types.
 
-=item guess_type
+=item guesser
 
 A value is a reference of code or reference of array which contains name of the "guess classes".
 In the case of a code, it is only performed for determining the mime type.
@@ -328,7 +325,7 @@ If value of return is false value, that means "application/octet-stream".
 For example, sets routine which determine text or jpeg.
 
     my $exp = MIME::Expander->new({
-        guess_type => sub {
+        guesser => sub {
                 my $ref_contents = shift;
                 my $info         = shift || {};
                 if( defined $info->{filename} ){
@@ -344,10 +341,10 @@ For example, sets routine which determine text or jpeg.
             },
         });
 
-When useing the "guess classes", like this is the default of guess_type, package name is omissible:
+When useing the "guess classes", like this is the default of guesser, package name is omissible:
 
     my $exp = MIME::Expander->new({
-        guess_type => [qw/MMagic FileName/],
+        guesser => [qw/MMagic FileName/],
         });
 
 Please look in under namespace of L<MIME::Expander::Guess> about what kinds of routine are available.
@@ -388,22 +385,22 @@ Is $type the contents set to field "expects" ?
 
 Accessor to field "depth".
 
-=head2 guess_type( \&code )
+=head2 guesser( \&code )
 
-Accessor to field "guess_type".
+Accessor to field "guesser".
 
-=head2 guess_type_by_contents( \$contents, \%info )
+=head2 guess_type_of( \$contents, \%info )
 
-The routine "guess_type" actually determines mime type.
+Determine mime type from the $contents.
 
 Optional %info is as hint for determing mime type.
-It will be passed to a "guess_type" routine directly.
+It will be passed to "guesser" directly.
 
-"filename" can be included in %info.
+A key "filename" can be included in %info.
 
 =head2 plugin_for( $type )
 
-TODO
+Please see the PLUGIN section.
 
 =head2 walk( \$data, $callback )
 
@@ -435,15 +432,11 @@ Only this $email object has rules on this MIME::Expander utility class.
 The expanded data is set to "body" and the Content-Transfer-Encoding is "binary".
 Therefore, in order to take out the expanded contents, please use "body_raw" method.
 
-=head1 IMPORT
-
-TODO
-
 =head1 PLUGIN
 
-TODO
+Expanding module for expand contents can be added as plug-in. 
 
-See also L<MIME::Expander::Plugin>.
+Please see L<MIME::Expander::Plugin> for details.
 
 =head1 CAVEATS
 
