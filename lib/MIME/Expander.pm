@@ -137,7 +137,7 @@ sub guess_type_by_contents {
         if( ref $routine eq 'ARRAY' ){
             @routines = @$routine;
         }else{
-            @routines = ('MMagic');
+            @routines = ('MMagic', 'FileName');
         }
         for my $klass ( @routines ){
             $klass = join('::', $PrefixGuess, $klass) if( $klass !~ /:/ );
@@ -344,13 +344,13 @@ For example, sets routine which determine text or jpeg.
             },
         });
 
-When useing the "guess classes", like this, a package name is omissible:
+When useing the "guess classes", like this is the default of guess_type, package name is omissible:
 
     my $exp = MIME::Expander->new({
-        guess_type => [qw/FileName MMagic/],
+        guess_type => [qw/MMagic FileName/],
         });
 
-Anyway, in not specifying, L<MIME::Expander::Guess::MMagic> is adopted by default. 
+Please look in under namespace of L<MIME::Expander::Guess> about what kinds of routine are available.
 
 =item depth
 
