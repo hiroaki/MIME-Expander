@@ -42,7 +42,7 @@ CONSTRUCTOR AND ACCESSORS
         If this parameter is set, then the walk() will not expand contents
         of specified mime types.
 
-    guess_type
+    guesser
         A value is a reference of code or reference of array which contains
         name of the "guess classes". In the case of a code, it is only
         performed for determining the mime type. In array, it performs in
@@ -63,7 +63,7 @@ CONSTRUCTOR AND ACCESSORS
         For example, sets routine which determine text or jpeg.
 
             my $exp = MIME::Expander->new({
-                guess_type => sub {
+                guesser => sub {
                         my $ref_contents = shift;
                         my $info         = shift || {};
                         if( defined $info->{filename} ){
@@ -79,15 +79,15 @@ CONSTRUCTOR AND ACCESSORS
                     },
                 });
 
-        When useing the "guess classes", like this, a package name is
-        omissible:
+        When useing the "guess classes", like this is the default of
+        guesser, package name is omissible:
 
             my $exp = MIME::Expander->new({
-                guess_type => [qw/FileName MMagic/],
+                guesser => [qw/MMagic FileName/],
                 });
 
-        Anyway, in not specifying, MIME::Expander::Guess::MMagic is adopted
-        by default.
+        Please look in under namespace of MIME::Expander::Guess about what
+        kinds of routine are available.
 
     depth
         A value is a native number.
@@ -104,7 +104,7 @@ CLASS METHODS
 
 INSTANCE METHODS
   init
-    Initialize instance. This is for override.
+    Initialize instance. This is for overriding.
 
   expects( \@list )
     Accessor to field "expects".
@@ -115,19 +115,19 @@ INSTANCE METHODS
   depth( $native_number )
     Accessor to field "depth".
 
-  guess_type( \&code )
-    Accessor to field "guess_type".
+  guesser( \&code )
+    Accessor to field "guesser".
 
-  guess_type_by_contents( \$contents, \%info )
-    The routine "guess_type" actually determines mime type.
+  guess_type_of( \$contents, \%info )
+    Determine mime type from the $contents.
 
     Optional %info is as hint for determing mime type. It will be passed to
-    a "guess_type" routine directly.
+    "guesser" directly.
 
-    "filename" can be included in %info.
+    A key "filename" can be included in %info.
 
   plugin_for( $type )
-    TODO
+    Please see the PLUGIN section.
 
   walk( \$data, $callback )
     If the $data which can be expanded in the inputted data exists, it will
@@ -159,13 +159,10 @@ INSTANCE METHODS
     "binary". Therefore, in order to take out the expanded contents, please
     use "body_raw" method.
 
-IMPORT
-    TODO
-
 PLUGIN
-    TODO
+    Expanding module for expand contents can be added as plug-in.
 
-    See also MIME::Expander::Plugin.
+    Please see MIME::Expander::Plugin for details.
 
 CAVEATS
     This version only implements in-memory decompression.
