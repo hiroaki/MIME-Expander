@@ -90,7 +90,7 @@ sub is_expected {
     die "invalid type $type that has not looks as mime/type"
         if( $type !~ m,^.+/.+$, );
     return () unless( $self->expects );
-    for my $regexp ( map { ref $_ ? $_ : qr/^$_$/ } @{$self->expects} ){
+    for my $regexp ( map { ref $_ ? $_ : qr/$_/ } @{$self->expects} ){
         return 1 if( $type =~ $regexp );
     }
     return ();
