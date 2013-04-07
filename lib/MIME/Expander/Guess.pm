@@ -12,6 +12,7 @@ sub type {
     return 'application/octet-stream';
 }
 
+
 1;
 __END__
 
@@ -45,6 +46,8 @@ You have to implement a class method 'type', determine and return the mime type 
 If it could not determine, return the undef.
 
 =head1 SEE ALSO
+
+L<MIME::Expander::Guess::FileName>
 
 L<MIME::Expander::Guess::MMagic>
 

@@ -119,10 +119,10 @@ INSTANCE METHODS
   depth( $native_number )
     Accessor to field "depth".
 
-  guesser( \&code )
+  guesser( \&code | \@list )
     Accessor to field "guesser".
 
-  guess_type_of( \$contents, \%info )
+  guess_type_of( \$contents, [\%info] )
     Determine mime type from the $contents.
 
     Optional %info is as hint for determing mime type. It will be passed to

@@ -57,12 +57,12 @@ MIME::Expander::Plugin::ApplicationTar - a plugin for MIME::Expander
 
 =head1 DESCRIPTION
 
-Expand data that media type is "application/tar" or "application/x-tar".
+Expand data that type is "application/tar" or "application/x-tar".
 
 =head1 SEE ALSO
 
-L<MIME::Expander>
 L<MIME::Expander::Plugin>
+
 L<Archive::Tar>
 
 =cut

@@ -5,7 +5,7 @@ use warnings;
 use vars qw($VERSION);
 $VERSION = '0.01';
 
-use base qw(MIME::Expander::Guess);
+use parent qw(MIME::Expander::Guess);
 use File::MMagic;
 
 sub type {
@@ -18,6 +18,7 @@ sub type {
 
 1;
 __END__
+
 
 =pod
 
@@ -47,5 +48,7 @@ Guess the mime type from contents using L<File::MMagic>.
 =head1 SEE ALSO
 
 L<MIME::Expander::Guess>
+
+L<File::MMagic>
 
 =cut

@@ -6,8 +6,8 @@ lib/MIME/Expander/Guess/FileName.pm
 lib/MIME/Expander/Guess/MMagic.pm
 lib/MIME/Expander/Plugin.pm
 lib/MIME/Expander/Plugin/ApplicationTar.pm
-lib/MIME/Expander/Plugin/ApplicationXBzip2.pm
-lib/MIME/Expander/Plugin/ApplicationXGzip.pm
+lib/MIME/Expander/Plugin/ApplicationBzip2.pm
+lib/MIME/Expander/Plugin/ApplicationGzip.pm
 lib/MIME/Expander/Plugin/ApplicationZip.pm
 lib/MIME/Expander/Plugin/MessageRFC822.pm
 Makefile.PL

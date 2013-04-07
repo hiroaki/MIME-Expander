@@ -397,11 +397,11 @@ Is $type the contents set to field "expects" ?
 
 Accessor to field "depth".
 
-=head2 guesser( \&code )
+=head2 guesser( \&code | \@list )
 
 Accessor to field "guesser".
 
-=head2 guess_type_of( \$contents, \%info )
+=head2 guess_type_of( \$contents, [\%info] )
 
 Determine mime type from the $contents.
 

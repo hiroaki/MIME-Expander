@@ -61,8 +61,8 @@ Expand data that media type is "message/rfc822".
 
 =head1 SEE ALSO
 
-L<MIME::Expander>
 L<MIME::Expander::Plugin>
+
 L<Email::MIME>
 
 =cut

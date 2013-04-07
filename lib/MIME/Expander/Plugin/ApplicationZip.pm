@@ -72,8 +72,8 @@ Expand data that media type is "application/zip" or "application/x-zip".
 
 =head1 SEE ALSO
 
-L<MIME::Expander>
 L<MIME::Expander::Plugin>
+
 L<IO::Uncompress::Unzip>
 
 =cut

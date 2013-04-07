@@ -1,4 +1,4 @@
-package MIME::Expander::Plugin::ApplicationXBzip2;
+package MIME::Expander::Plugin::ApplicationGzip;
 
 use strict;
 use warnings;
@@ -7,11 +7,11 @@ $VERSION = '0.01';
 
 use parent qw(MIME::Expander::Plugin);
 __PACKAGE__->mk_classdata('ACCEPT_TYPES' => [qw(
-    application/bzip2
-    application/x-bzip2
+    application/gzip
+    application/x-gzip
     )]);
 
-use IO::Uncompress::Bunzip2;
+use IO::Uncompress::Gunzip;
 
 sub expand {
     my $self        = shift;
@@ -19,10 +19,10 @@ sub expand {
     my $callback    = shift;
     my $c           = 0;
 
-    my $z = IO::Uncompress::Bunzip2->new(
+    my $z = IO::Uncompress::Gunzip->new(
         ref $contents eq 'SCALAR' ? $contents : \$contents
-        , Append => 1) 
-        or die "bzip2 failed: $IO::Uncompress::Bunzip2::Bunzip2Error";
+        , Append => 1)
+        or die "gunzip failed: $IO::Uncompress::Gunzip::GunzipError";
 
     my $buf;
     1 while( 0 < $z->read($buf) );
@@ -44,11 +44,11 @@ __END__
 
 =head1 NAME
 
-MIME::Expander::Plugin::ApplicationXBzip2 - a plugin for MIME::Expander
+MIME::Expander::Plugin::ApplicationGzip - a plugin for MIME::Expander
 
 =head1 SYNOPSIS
 
-    my $expander = MIME::Expander::Plugin::ApplicationXBzip2->new;
+    my $expander = MIME::Expander::Plugin::ApplicationGzip->new;
     $expander->expand(\$data, sub {
             my $ref_expanded_data = shift;
             my $metadata = shift || {};
@@ -58,12 +58,12 @@ MIME::Expander::Plugin::ApplicationXBzip2 - a plugin for MIME::Expander
 
 =head1 DESCRIPTION
 
-Expand data that media type is "application/x-bzip2".
+Expand data that media type is "application/gzip" or "application/x-gzip".
 
 =head1 SEE ALSO
 
-L<MIME::Expander>
 L<MIME::Expander::Plugin>
-L<IO::Uncompress::Bunzip2>
+
+L<IO::Uncompress::Gunzip>
 
 =cut
