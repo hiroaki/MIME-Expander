@@ -14,3 +14,10 @@ Makefile.PL
 MANIFEST			This list of files
 t/00_compile.t
 t/10_expander.t
+t/11_expander_walk.t
+t/untitled.pdf
+t/untitled.tar
+t/untitled.tar.bz2
+t/untitled.tar.gz
+t/untitled.txt
+t/untitled.zip

@@ -158,7 +158,7 @@ require MIME::Expander; # don't "use" for import tests
         'text/plain', 'guess_type_of using code - text');
 
     is( $me->guess_type_of(
-        \ { pack('C*',0x01,0x02) },{ filename => 'plain.pdf' } ),
+        \ pack('C*',0x01,0x02),{ filename => 'plain.pdf' } ),
         'application/octet-stream', 'guess_type_of using code - unknown');
 }
 

@@ -95,12 +95,16 @@ CONSTRUCTOR AND ACCESSORS
         Please see "walk".
 
 CLASS METHODS
-  canonical_content_type( $content_type )
-    This is an utility for unifying header "Content-type" with parameters.
+  regulate_type( $type )
+    Simplify when the type which removed "x-" is registered.
 
-        MIME::Expander->canonical_content_type(
-            "text/plain; charset=ISO-2022-JP");
+        MIME::Expander->regulate_type("text/plain; charset=ISO-2022-JP");
         #=> "text/plain"
+
+        MIME::Expander->regulate_type('application/x-tar');
+        #=> "application/tar"
+
+    Please see about "simplified" in the document of MIME::Type.
 
 INSTANCE METHODS
   init
