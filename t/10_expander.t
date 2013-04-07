@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 59;
+use Test::More tests => 64;
 #use Test::More qw(no_plan);
 
 require MIME::Expander; # don't "use" for import tests
@@ -13,15 +13,6 @@ require MIME::Expander; # don't "use" for import tests
         [qw/ApplicationTar ApplicationZip/], 'import EnabledPlugins');
 
     @MIME::Expander::EnabledPlugins = (); # reset
-}
-
-# canonical_content_type
-{;
-    is( MIME::Expander->canonical_content_type('text/plain'),
-        'text/plain', 'canonical_content_type');
-
-    is( MIME::Expander->canonical_content_type('text/plain; charset=UTF-8'),
-        'text/plain', 'canonical_content_type with parameter');
 }
 
 # new
@@ -171,16 +162,6 @@ require MIME::Expander; # don't "use" for import tests
         'application/octet-stream', 'guess_type_of using code - unknown');
 }
 
-# regulate_type
-{;
-    my $me = MIME::Expander->new;
-    is( $me->regulate_type('text/plain'), 'text/plain', 'regulate_type normal');
-    is( $me->regulate_type('text/x-me'), 'text/me', 'regulate_type unregistered');
-    is( $me->regulate_type('x-media/x-type'), 'media/type', 'regulate_type unregistered');
-    is( $me->regulate_type(), undef, 'regulate_type undef');
-    is( $me->regulate_type('a'), undef, 'regulate_type invalid');
-}
-
 # plugin_for
 {;
     my $me = MIME::Expander->new;
@@ -195,6 +176,28 @@ require MIME::Expander; # don't "use" for import tests
     is( $me->plugin_for('message/rfc822'), undef, 'plugin_for disabled plugin');
     isa_ok( $me->plugin_for('application/tar'),
         'MIME::Expander::Plugin::ApplicationTar', 'plugin_for enabled plugin');
+}
+
+# regulate_type (class method)
+{;
+    is( MIME::Expander->regulate_type('text/plain'), 'text/plain', 'regulate_type normal');
+    is( MIME::Expander->regulate_type('text/x-me'), 'text/me', 'regulate_type unregistered');
+    is( MIME::Expander->regulate_type('x-media/x-type'), 'media/type', 'regulate_type unregistered');
+    is( MIME::Expander->regulate_type(), undef, 'regulate_type undef');
+    is( MIME::Expander->regulate_type('a'), undef, 'regulate_type invalid');
+    is( MIME::Expander->regulate_type('text/plain; charset=UTF-8'), 'text/plain', 'regulate_type content-type');
+
+}
+
+# regulate_type (via instance)
+{;
+    my $me = MIME::Expander->new;
+    is( $me->regulate_type('text/plain'), 'text/plain', 'regulate_type normal');
+    is( $me->regulate_type('text/x-me'), 'text/me', 'regulate_type unregistered');
+    is( $me->regulate_type('x-media/x-type'), 'media/type', 'regulate_type unregistered');
+    is( $me->regulate_type(), undef, 'regulate_type undef');
+    is( $me->regulate_type('a'), undef, 'regulate_type invalid');
+    is( $me->regulate_type('text/plain; charset=UTF-8'), 'text/plain', 'regulate_type content-type');
 }
 
 # walk

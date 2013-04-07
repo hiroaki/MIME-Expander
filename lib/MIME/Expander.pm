@@ -27,13 +27,20 @@ sub import {
     @EnabledPlugins = @_;
 }
 
-sub canonical_content_type {
+sub regulate_type {
     return undef unless( defined $_[1] );
-    my $ct = Email::MIME::ContentType::parse_content_type($_[1]);
-    if( $ct->{discrete} and $ct->{composite} ){
-        return join('/',$ct->{discrete}, $ct->{composite});
-    }
-    return undef;
+    my $type = $_[1];
+
+    # There is regexp from Email::MIME::ContentType 1.015
+    my $tspecials = quotemeta '()<>@,;:\\"/[]?=';
+    my $discrete  = qr/[^$tspecials]+/;
+    my $composite = qr/[^$tspecials]+/;
+    my $params    = qr/;.*/;
+    return undef unless( $type =~ m[ ^ ($discrete) / ($composite) \s* ($params)? $ ]x );
+
+    my $ct = Email::MIME::ContentType::parse_content_type($type);
+    return undef if( ! $ct->{discrete} or ! $ct->{composite} );
+    return MIME::Type->simplified(join('/',$ct->{discrete}, $ct->{composite}));
 }
 
 sub debug {
@@ -147,12 +154,6 @@ sub guess_type_of {
     return ($type || 'application/octet-stream');
 }
 
-sub regulate_type {
-    my $self = shift;
-    my $type = shift or return;
-    MIME::Type->simplified($type);
-}
-
 sub plugin_for {
     my $self = shift;
     my $type = shift;
@@ -189,8 +190,8 @@ sub _create_media {
     my $ref_data = shift or die "missing mandatory parameter";
     my $info     = shift || {};
 
-    my $type = $self->canonical_content_type($info->{content_type});
-    if( ! $type or $type =~ m'^application/octet-?stream$' ){ #'
+    my $type = $self->regulate_type($info->{content_type});
+    if( ! $type or $type eq 'application/octet-stream' ){
         $type = $self->guess_type_of($ref_data, $info);
     }
 
@@ -366,13 +367,17 @@ Please see "walk".
 
 =head1 CLASS METHODS
 
-=head2 canonical_content_type( $content_type )
+=head2 regulate_type( $type )
 
-This is an utility for unifying header "Content-type" with parameters.
+Simplify when the type which removed "x-" is registered.
 
-    MIME::Expander->canonical_content_type(
-        "text/plain; charset=ISO-2022-JP");
+    MIME::Expander->regulate_type("text/plain; charset=ISO-2022-JP");
     #=> "text/plain"
+
+    MIME::Expander->regulate_type('application/x-tar');
+    #=> "application/tar"
+
+Please see about "simplified" in the document of L<MIME::Type>.
 
 =head1 INSTANCE METHODS
 
