@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 54;
+use Test::More tests => 59;
 #use Test::More qw(no_plan);
 
 require MIME::Expander; # don't "use" for import tests
@@ -169,6 +169,16 @@ require MIME::Expander; # don't "use" for import tests
     is( $me->guess_type_of(
         \ { pack('C*',0x01,0x02) },{ filename => 'plain.pdf' } ),
         'application/octet-stream', 'guess_type_of using code - unknown');
+}
+
+# regulate_type
+{;
+    my $me = MIME::Expander->new;
+    is( $me->regulate_type('text/plain'), 'text/plain', 'regulate_type normal');
+    is( $me->regulate_type('text/x-me'), 'text/me', 'regulate_type unregistered');
+    is( $me->regulate_type('x-media/x-type'), 'media/type', 'regulate_type unregistered');
+    is( $me->regulate_type(), undef, 'regulate_type undef');
+    is( $me->regulate_type('a'), undef, 'regulate_type invalid');
 }
 
 # plugin_for

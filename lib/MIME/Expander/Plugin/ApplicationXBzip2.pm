@@ -7,6 +7,7 @@ $VERSION = '0.01';
 
 use parent qw(MIME::Expander::Plugin);
 __PACKAGE__->mk_classdata('ACCEPT_TYPES' => [qw(
+    application/bzip2
     application/x-bzip2
     )]);
 

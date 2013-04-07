@@ -8,6 +8,7 @@ WriteMakefile(
         'File::MMagic'              => '1.29',
         'Email::MIME'               => '1.905',
         'Email::MIME::ContentType'  => 0,
+        'MIME::Type'                => '0.12',
         'Module::Load'              => '0.22',
         'Module::Pluggable'         => 0,
         'Archive::Tar'              => '1.82',

@@ -18,6 +18,7 @@ BEGIN {
 
 use Email::MIME;
 use Email::MIME::ContentType ();
+use MIME::Type;
 use Module::Load;
 use Module::Pluggable search_path => $PrefixPlugin, sub_name => 'expanders';
 
@@ -139,11 +140,17 @@ sub guess_type_of {
         for my $klass ( @routines ){
             $klass = join('::', $PrefixGuess, $klass) if( $klass !~ /:/ );
             Module::Load::load $klass;
-            $type = $klass->type($ref_data, $info);
-            last if( $type );
+            $type = $self->regulate_type( $klass->type($ref_data, $info) );
+            last if( $type and $type ne 'application/octet-stream');
         }
     }
     return ($type || 'application/octet-stream');
+}
+
+sub regulate_type {
+    my $self = shift;
+    my $type = shift or return;
+    MIME::Type->simplified($type);
 }
 
 sub plugin_for {
