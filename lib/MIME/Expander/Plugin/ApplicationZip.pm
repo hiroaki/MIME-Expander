@@ -19,14 +19,13 @@ sub expand {
     my $callback    = shift;
     my $c           = 0;
 
-    $contents = \$contents unless( ref $contents );
-
     my $uzip = IO::Uncompress::Unzip->new(
         ref $contents eq 'SCALAR' ? $contents : \$contents
         , Append => 1)
         or die "unzip failed: $IO::Uncompress::Unzip::UnzipError\n";
 
-    while( my $status = $uzip->nextStream ){
+    my $status;
+    for( $status = 1; 0 < $status; $status = $uzip->nextStream ){
 
         die "Error processing as zip: $!"
             if( $status < 0 );
