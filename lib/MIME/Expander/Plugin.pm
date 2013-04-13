@@ -16,7 +16,7 @@ sub new {
     bless {}, (ref $class || $class);
 }
 
-sub accepts {
+sub is_acceptable {
     my $self        = shift;
     my $type        = shift or return ();
     for ( @{$self->ACCEPT_TYPES} ){
@@ -31,7 +31,9 @@ sub expand {
     my $callback    = shift;
     my $c           = 0;
 
-    $callback->( \$contents ) if( ref $callback eq 'CODE' );
+    $callback->( ref $contents eq 'SCALAR' ? $contents : \$contents )
+        if( ref $callback eq 'CODE' );
+
     ++$c;
 
     return $c;

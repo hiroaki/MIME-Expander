@@ -177,7 +177,7 @@ sub plugin_for {
         }
         
         Module::Load::load $klass;
-        if( $klass->accepts( $type ) ){
+        if( $klass->is_acceptable( $type ) ){
             $plugin = $klass->new;
             last;
         }
