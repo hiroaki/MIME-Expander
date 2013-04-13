@@ -36,8 +36,11 @@ sub expand {
 
         last if( $bytes < 0 );
 
+        my $name = $uzip->getHeaderInfo->{Name};
+        next if( $name and $name =~ m,/$, );
+        
         $callback->( \$buff, {
-            filename => $uzip->getHeaderInfo->{Name},
+            filename => $name,
             } ) if( ref $callback eq 'CODE' );
         ++$c;
     }
