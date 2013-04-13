@@ -15,6 +15,16 @@ MANIFEST			This list of files
 t/00_compile.t
 t/10_expander.t
 t/11_expander_walk.t
+t/20_guess.t
+t/22_guess_filename.t
+t/22_guess_mmagic.t
+t/30_plugin.t
+t/32_plugin_bzip2.t
+t/32_plugin_gzip.t
+t/32_plugin_rfc822.t
+t/32_plugin_tar.t
+t/32_plugin_zip.t
+t/untitled.eml
 t/untitled.pdf
 t/untitled.tar
 t/untitled.tar.bz2
