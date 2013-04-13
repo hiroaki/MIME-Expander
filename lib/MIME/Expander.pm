@@ -277,21 +277,13 @@ MIME::Expander - Expands archived, compressed or multi-parted file by MIME mecha
     use MIME::Expander;
     use IO::All;
 
-    my $exp = MIME::Expander->new({
-        expects => [
-            qr(^application/(:?x-)?zip$),
-            ],
-        });
-    
     my $callback = sub {
-            my $em = shift; # Email::MIME object
-            my $type = $em->content_type;
-            if( $exp->is_expected( $type ) ){
-                print "$type is expected\n";
-            }
+            my $em = shift; # is an Email::MIME object
+            $em->body_raw > io( $em->invent_filename );
         };
     
-    my $num_contents = $exp->walk( io($input)->all, $callback );
+    my $exp = MIME::Expander->new;    
+    my $num_contents = $exp->walk( io($ARGV[0])->all, $callback );
     
     print "total $num_contents are expanded.\n";
 
@@ -438,7 +430,7 @@ But it may be used, since it is set to "filename" attribute when it exists.
             close $fh;
         });
 
-See also L<Email::MIME> for $email object.
+See also L<Email::MIME> about $email object.
 
 Only this $email object has rules on this MIME::Expander utility class.
 The expanded data is set to "body" and the Content-Transfer-Encoding is "binary".
