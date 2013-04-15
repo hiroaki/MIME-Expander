@@ -44,9 +44,9 @@ sub regulate_type {
 }
 
 sub debug {
-    shift;
+    my $self = shift;
     my $msg = shift or return;
-    printf STDERR "# %s: %s\n", __PACKAGE__, $msg if( $DEBUG );
+    printf STDERR "# %s: %s\n", $self, $msg if( $DEBUG );
 }
 
 sub new {
