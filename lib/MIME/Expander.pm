@@ -279,7 +279,7 @@ MIME::Expander - Expands archived, compressed or multi-parted file by MIME mecha
 
     my $callback = sub {
             my $em = shift; # is an Email::MIME object
-            $em->body_raw > io( $em->invent_filename );
+            $em->body_raw > io( $em->filename );
         };
     
     my $exp = MIME::Expander->new;    
@@ -422,9 +422,9 @@ As the work, it sometimes often saves.
 However the file name may not be obtained with the specification of expander module.
 But it may be used, since it is set to "filename" attribute when it exists.
 
-    $me->expand( \$data, sub {
+    $me->walk( \$data, sub {
             my $email = shift;
-            my $name  = $email->invent_filename;
+            my $name  = $email->filename;
             open my $fh, ">$name" or die;
             $fh->print($email->body_raw);
             close $fh;
