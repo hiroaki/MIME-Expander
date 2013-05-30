@@ -2,6 +2,8 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
     'NAME'          => 'MIME::Expander',
+    'AUTHOR'        => 'WATANABE Hiroaki <hwat@cpan.org>',
+    'LICENSE'       => 'perl',
     'VERSION_FROM'  => 'lib/MIME/Expander.pm', # finds $VERSION
     'PREREQ_PM'     => {
         'Archive::Tar'              => '1.82',
