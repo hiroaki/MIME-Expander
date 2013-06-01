@@ -5,13 +5,13 @@ NAME
 SYNOPSIS
         use MIME::Expander;
         use IO::All;
-
+    
         my $callback = sub {
                 my $em = shift; # is an Email::MIME object
                 $em->body_raw > io( $em->filename );
             };
     
-        my $exp = MIME::Expander->new;    
+        my $exp = MIME::Expander->new;
         my $num_contents = $exp->walk( io($ARGV[0])->all, $callback );
     
         print "total $num_contents are expanded.\n";
@@ -123,7 +123,13 @@ INSTANCE METHODS
     A key "filename" can be included in %info.
 
   plugin_for( $type )
-    Please see the PLUGIN section.
+    Get an instance of the expander class for mime type "$type".
+
+        my $me = MIME::Expander->new;
+        my $expander = $me->plugin_for('application/tar') or die "not available";
+        $expander->expand( \$data, $callback );
+
+    Please see also the PLUGIN section.
 
   walk( \$data, $callback )
     If the $data which can be expanded in the inputted data exists, it will
@@ -162,6 +168,10 @@ PLUGIN
 
 CAVEATS
     This version only implements in-memory decompression.
+
+REPOSITORY
+    MIME::Expander is hosted on github
+    <https://github.com/hiroaki/MIME-Expander>
 
 AUTHOR
     WATANABE Hiroaki <hwat@cpan.org>

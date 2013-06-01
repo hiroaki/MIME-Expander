@@ -3,10 +3,7 @@ package MIME::Expander;
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '0.01';
-
-use vars qw($DEBUG);
-$DEBUG = 0;
+$VERSION = '0.02';
 
 use vars qw($PrefixGuess $PrefixPlugin @DefaultGuesser @EnabledPlugins);
 BEGIN {
@@ -41,12 +38,6 @@ sub regulate_type {
     my $ct = Email::MIME::ContentType::parse_content_type($type);
     return undef if( ! $ct->{discrete} or ! $ct->{composite} );
     return MIME::Type->simplified(join('/',$ct->{discrete}, $ct->{composite}));
-}
-
-sub debug {
-    my $self = shift;
-    my $msg = shift or return;
-    printf STDERR "# %s: %s\n", $self, $msg if( $DEBUG );
 }
 
 sub new {
@@ -224,20 +215,16 @@ sub walk {
     
     # when expandable contents, then append it to @medias
     while( my $media = shift @medias ){
-        $self->debug("====> shift media, remains=[@{[ scalar @medias ]}]");
 
         my $type    = $media->content_type;
         my $plugin  = $self->plugin_for($type);
-        $self->debug("* type is [$type], plugin_for [@{[ $plugin || '' ]}]");
 
         if( $limit or $self->is_expected( $type ) or ! $plugin ){
             # expected or un-expandable data
-            $self->debug("=> limited, expected or un-expandable data");
             $callback->($media) if( ref $callback eq 'CODE' );
             ++$c;
         }else{
             # expand more
-            $self->debug("==> expand more");
             # note: undocumented api is used ->{body}
             $plugin->expand( $media->{body} , sub {
                 push @medias, $self->_create_media( @_ );
@@ -245,16 +232,13 @@ sub walk {
         }
 
         ++$ptr;
-        $self->debug("incremented ptr=[$ptr] | bound=[$bound] level=[$level]");
         if( $bound <= $ptr ){
             
             if( $self->depth and $self->depth <= $level ){
                 $limit = 1;
-                $self->debug("set limit to TRUE");
             }
             $bound += scalar @medias;
             ++$level;
-            $self->debug("updated bound=[$bound] level=[$level]");
         }
     }
     
@@ -276,13 +260,13 @@ MIME::Expander - Expands archived, compressed or multi-parted file by MIME mecha
 
     use MIME::Expander;
     use IO::All;
-
+    
     my $callback = sub {
             my $em = shift; # is an Email::MIME object
             $em->body_raw > io( $em->filename );
         };
     
-    my $exp = MIME::Expander->new;    
+    my $exp = MIME::Expander->new;
     my $num_contents = $exp->walk( io($ARGV[0])->all, $callback );
     
     print "total $num_contents are expanded.\n";
@@ -404,7 +388,13 @@ A key "filename" can be included in %info.
 
 =head2 plugin_for( $type )
 
-Please see the PLUGIN section.
+Get an instance of the expander class for mime type "$type".
+
+    my $me = MIME::Expander->new;
+    my $expander = $me->plugin_for('application/tar') or die "not available";
+    $expander->expand( \$data, $callback );
+
+Please see also the PLUGIN section.
 
 =head2 walk( \$data, $callback )
 
@@ -445,6 +435,10 @@ Please see L<MIME::Expander::Plugin> for details.
 =head1 CAVEATS
 
 This version only implements in-memory decompression.
+
+=head1 REPOSITORY
+
+MIME::Expander is hosted on github L<https://github.com/hiroaki/MIME-Expander>
 
 =head1 AUTHOR
 
