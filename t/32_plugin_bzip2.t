@@ -1,6 +1,8 @@
 use strict;
 use Test::More tests => 10;
 #use Test::More qw(no_plan);
+use lib './t/lib';
+use MyUtils;
 
 use MIME::Expander::Plugin::ApplicationBzip2;
 
@@ -36,8 +38,12 @@ ok( ! $plg->is_acceptable('application/zip'),'not is_acceptable');
 my $input   = read_file('t/untitled.tar.bz2');
 my $expect  = read_file('t/untitled.tar');
 my $cb = sub {
-    my ($contents, $info) = @_;
+    my ($buf, $info) = @_;
     is( $info->{filename}, undef, 'filename' );
-    is( $$contents, $$expect, 'exec callback' );
+    is( $$buf, $$expect, 'exec callback' );
 };
-is( $plg->expand( $input, $cb ), 1, 'expand returns' );
+my $attr = {
+    encoding     => "base64",
+    content_type => "application/x-bzip",
+    };
+is( $plg->expand( MyUtils::create_part($input, $attr), $cb ), 1, 'expand returns' );

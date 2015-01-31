@@ -21,5 +21,6 @@ WriteMakefile(
         'Module::Pluggable'         => 0,
         'parent'                    => 0,
         'Test::More'                => '0.32',
+        'Scalar::Util'              => 0,
         },
     );

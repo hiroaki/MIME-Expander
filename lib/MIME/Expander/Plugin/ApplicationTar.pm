@@ -3,7 +3,7 @@ package MIME::Expander::Plugin::ApplicationTar;
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 use parent qw(MIME::Expander::Plugin);
 __PACKAGE__->mk_classdata('ACCEPT_TYPES' => [qw(
@@ -16,12 +16,13 @@ use IO::Scalar;
 
 sub expand {
     my $self        = shift;
-    my $contents    = shift;
+    my $part        = shift;
     my $callback    = shift;
     my $c           = 0;
 
+    my $contents = $part->body;
     my $iter = Archive::Tar->iter(IO::Scalar->new(
-        ref $contents eq 'SCALAR' ? $contents : \$contents
+        \$contents,
         ));
     while( my $f = $iter->() ){
         if( $f->has_content and $f->validate ){

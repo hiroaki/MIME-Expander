@@ -1,6 +1,8 @@
 use strict;
 use Test::More tests => 10;
 #use Test::More qw(no_plan);
+use lib './t/lib';
+use MyUtils;
 
 use MIME::Expander::Plugin::ApplicationTar;
 
@@ -41,6 +43,10 @@ my $cb = sub {
     push @$names, $info->{filename};
     push @$sizes, length($$contents);
 };
-is( $plg->expand( $input, $cb ), 2, 'expand returns' );
+my $attr = {
+    encoding     => "base64",
+    content_type => "application/tar",
+};
+is( $plg->expand( MyUtils::create_part($input, $attr), $cb ), 2, 'expand returns' );
 is_deeply( [sort @$names], ['untitled/untitled.pdf','untitled/untitled.txt'], 'filenames');
 is_deeply( [sort @$sizes], [15,7841], 'sizes');

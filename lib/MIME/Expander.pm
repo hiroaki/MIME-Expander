@@ -18,6 +18,8 @@ use Email::MIME::ContentType ();
 use MIME::Type;
 use Module::Load;
 use Module::Pluggable search_path => $PrefixPlugin, sub_name => 'expanders';
+use MIME::Expander::Plugin::MessageRFC822;
+use Scalar::Util 'blessed';
 
 sub import {
     my $class = shift;
@@ -168,7 +170,7 @@ sub plugin_for {
         }
         
         Module::Load::load $klass;
-        if( $klass->is_acceptable( $type ) ){
+        if( $klass->is_acceptable( $self->regulate_type($type) ) ){
             $plugin = $klass->new;
             last;
         }
@@ -176,7 +178,7 @@ sub plugin_for {
     return $plugin;
 }
 
-sub _create_media {
+sub create_media {
     my $self     = shift;
     my $ref_data = shift or die "missing mandatory parameter";
     my $info     = shift || {};
@@ -185,15 +187,23 @@ sub _create_media {
     if( ! $type or $type eq 'application/octet-stream' ){
         $type = $self->guess_type_of($ref_data, $info);
     }
-
-    return Email::MIME->create(
-        attributes => {
-            content_type    => $type,
-            encoding        => 'binary',
-            filename        => $info->{filename},
-            },
-        body => $ref_data,
-        );
+    
+    if( MIME::Expander::Plugin::MessageRFC822->is_acceptable(
+        $self->regulate_type($type)
+    )){
+        return Email::MIME->new($ref_data);
+    }elsif( blessed($ref_data) and $ref_data->isa('Email::Simple') ){
+        return $ref_data;
+    }else{
+        return Email::MIME->create(
+            attributes => {
+                content_type    => $type,
+                encoding        => 'binary',
+                filename        => $info->{filename},
+                },
+            body => $ref_data,
+            );
+    }
 }
 
 sub walk {
@@ -203,7 +213,7 @@ sub walk {
     my $info        = shift || {};
     my $c           = 0;
 
-    my @medias = ($self->_create_media(
+    my @medias = ($self->create_media(
         ref $data eq 'SCALAR' ? $data : \$data,
         $info));
 
@@ -215,25 +225,21 @@ sub walk {
     
     # when expandable contents, then append it to @medias
     while( my $media = shift @medias ){
-
         my $type    = $media->content_type;
         my $plugin  = $self->plugin_for($type);
-
         if( $limit or $self->is_expected( $type ) or ! $plugin ){
             # expected or un-expandable data
             $callback->($media) if( ref $callback eq 'CODE' );
             ++$c;
         }else{
             # expand more
-            # note: undocumented api is used ->{body}
-            $plugin->expand( $media->{body} , sub {
-                push @medias, $self->_create_media( @_ );
+            $plugin->expand( $media , sub {
+                push @medias, $self->create_media( @_ );
             });
         }
 
         ++$ptr;
         if( $bound <= $ptr ){
-            
             if( $self->depth and $self->depth <= $level ){
                 $limit = 1;
             }

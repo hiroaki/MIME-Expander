@@ -1,6 +1,8 @@
 use strict;
 use Test::More tests => 8;
 #use Test::More qw(no_plan);
+use lib './t/lib';
+use MyUtils;
 
 use MIME::Expander::Plugin::MessageRFC822;
 
@@ -15,6 +17,7 @@ sub read_file {
 
 my $accepts = [qw{
     message/rfc822
+    multipart/mixed
     }];
 
 is_deeply( MIME::Expander::Plugin::MessageRFC822->ACCEPT_TYPES,
@@ -34,6 +37,6 @@ ok( ! $plg->is_acceptable('message/http'),'not is_acceptable');
 my $input   = read_file('t/untitled.eml');
 my $cb = sub {
     my ($contents, $info) = @_;
-    like( $$contents, qr/^\s*MIME::Expander\s*$/s, 'exec callback');
+    like( $$contents, qr/MIME::Expander/, 'exec callback');
 };
-is( $plg->expand( $input, $cb ), 1, 'expand returns' );
+is( $plg->expand( Email::MIME->new($input), $cb ), 1, 'expand returns' );

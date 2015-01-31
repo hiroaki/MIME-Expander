@@ -3,7 +3,7 @@ package MIME::Expander::Plugin;
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 use parent qw(Class::Data::Inheritable);
 use Email::MIME;
@@ -27,11 +27,11 @@ sub is_acceptable {
 
 sub expand {
     my $self        = shift;
-    my $contents    = shift;
+    my $part        = shift;
     my $callback    = shift;
     my $c           = 0;
 
-    $callback->( ref $contents eq 'SCALAR' ? $contents : \$contents )
+    $callback->( $part->body )
         if( ref $callback eq 'CODE' );
 
     ++$c;
@@ -51,7 +51,7 @@ MIME::Expander::Plugin - Abstract class for plugin of MIME::Expander
 
 =head1 SYNOPSIS
 
-    # An implemented class
+    # An implement class
     package MIME::Expander::Plugin::MyExpander;
     use parent qw(MIME::Expander::Plugin);
     
@@ -59,21 +59,21 @@ MIME::Expander::Plugin - Abstract class for plugin of MIME::Expander
     # to negotiate for acceptable type
     __PACKAGE__->mk_classdata('ACCEPT_TYPES' => [qw(
         type/sub-type
-        type/x-sub-type
         )]);
 
     # And expand() for determine type
     sub expand {
         my $self        = shift;
-        my $contents    = shift;
+        my $part        = shift;
         my $callback    = shift;
         my $count       = 0;
 
-        while( my $media = expand_contents( $contents ) ){
+        my $contents = $part->body;
+        while( my $media = your_expand_function( $contents ) ){
             my $data     = $media->{data};
             my $filename = $media->{name};
             $callback->( \ $contents, {
-                filename => $filename, # optional
+                filename => $filename, # optional, sometimes it is undef
                 });
             ++$count;
         }

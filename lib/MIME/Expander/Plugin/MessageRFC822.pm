@@ -3,24 +3,23 @@ package MIME::Expander::Plugin::MessageRFC822;
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 use parent qw(MIME::Expander::Plugin);
 __PACKAGE__->mk_classdata('ACCEPT_TYPES' => [qw(
     message/rfc822
+    multipart/mixed
     )]);
 
 use Email::MIME;
 
 sub expand {
     my $self        = shift;
-    my $contents    = shift;
+    my $part        = shift;
     my $callback    = shift;
     my $c           = 0;
 
-    my @parts = (Email::MIME->new(
-        ref $contents eq 'SCALAR' ? $contents : \$contents
-        ));
+    my @parts = ($part);
     while( my $part = shift @parts ){
         if( 1 < $part->parts ){
             push @parts, $part->subparts;

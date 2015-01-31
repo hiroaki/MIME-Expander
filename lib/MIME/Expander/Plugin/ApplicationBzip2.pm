@@ -3,7 +3,7 @@ package MIME::Expander::Plugin::ApplicationBzip2;
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 use parent qw(MIME::Expander::Plugin);
 __PACKAGE__->mk_classdata('ACCEPT_TYPES' => [qw(
@@ -15,14 +15,14 @@ use IO::Uncompress::Bunzip2;
 
 sub expand {
     my $self        = shift;
-    my $contents    = shift;
+    my $part        = shift;
     my $callback    = shift;
     my $c           = 0;
 
+    my $contents = $part->body;
     my $z = IO::Uncompress::Bunzip2->new(
-        ref $contents eq 'SCALAR' ? $contents : \$contents
-        , Append => 1) 
-        or die "bzip2 failed: $IO::Uncompress::Bunzip2::Bunzip2Error";
+        \$contents, Append => 1,
+        ) or die "bzip2 failed: $IO::Uncompress::Bunzip2::Bunzip2Error";
 
     my $buf;
     1 while( 0 < $z->read($buf) );

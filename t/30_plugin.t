@@ -1,6 +1,8 @@
 use strict;
 use Test::More tests => 10;
 #use Test::More qw(no_plan);
+use lib './t/lib';
+use MyUtils;
 
 use MIME::Expander::Plugin;
 
@@ -27,8 +29,12 @@ ok( ! $plg->is_acceptable('x/y'),'not is_acceptable');
 my $input   = \ 'hello world';
 my $expect  = \ 'hello world';
 my $cb = sub {
-    my ($contents, $info) = @_;
+    my ($buf, $info) = @_;
     is( $info->{filename}, undef, 'filename' );
-    is( $$contents, $$expect, 'exec callback' );
+    is( $buf, $$expect, 'exec callback' );
 };
-is( $plg->expand( $input, $cb ), 1, 'expand returns' );
+my $attr = {
+    encoding     => "base64",
+    content_type => "application/bzip",
+    };
+is( $plg->expand( MyUtils::create_part($input, $attr), $cb ), 1, 'expand returns' );

@@ -1,6 +1,8 @@
 use strict;
 use Test::More tests => 10;
 #use Test::More qw(no_plan);
+use lib './t/lib';
+use MyUtils;
 
 use MIME::Expander::Plugin::ApplicationGzip;
 
@@ -40,4 +42,8 @@ my $cb = sub {
     is( $info->{filename}, 'untitled.tar', 'filename' );
     is( $$contents, $$expect, 'exec callback' );
 };
-is( $plg->expand( $input, $cb ), 1, 'expand returns' );
+my $attr = {
+    encoding     => "base64",
+    content_type => "application/gzip",
+};
+is( $plg->expand( MyUtils::create_part($input, $attr), $cb ), 1, 'expand returns' );
