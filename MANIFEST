@@ -25,6 +25,7 @@ t/32_plugin_rfc822.t
 t/32_plugin_tar.t
 t/32_plugin_zip.t
 t/lib/MyUtils.pm
+t/multipart.eml
 t/untitled.eml
 t/untitled.pdf
 t/untitled.tar

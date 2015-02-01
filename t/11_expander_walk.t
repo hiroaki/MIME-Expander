@@ -232,3 +232,24 @@ my $text_inline = MyUtils::create_part( \ 'hello inline!', {
         text/plain
         }] ),  'types of each contents 7');
 }
+
+# multipart/mixed
+{;
+    my $mime = Email::MIME->new(MyUtils::read_file('t/multipart.eml'));
+    my $me = MIME::Expander->new;
+    my @names = ();
+    my $num = $me->walk($mime, sub {
+            my $email = shift;
+            my $name = $email->filename;
+            my $body = $email->body;
+            my ($f) = $body =~ /^(.+)\n/; # the 1st line
+            if( $name ){
+                push @names, $name;
+                $name =~ s/\.txt//;
+                like($name, qr/$f/i, "attachment fruit: $f");
+            }else{
+                like($f, qr/Welcome to test MIME::Expander!/, 'body');
+            }
+        });
+    is( $num, 5, 'contain 5 parts' );
+}

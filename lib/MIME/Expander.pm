@@ -192,8 +192,6 @@ sub create_media {
         $self->regulate_type($type)
     )){
         return Email::MIME->new($ref_data);
-    }elsif( blessed($ref_data) and $ref_data->isa('Email::Simple') ){
-        return $ref_data;
     }else{
         return Email::MIME->create(
             attributes => {
@@ -213,9 +211,14 @@ sub walk {
     my $info        = shift || {};
     my $c           = 0;
 
-    my @medias = ($self->create_media(
-        ref $data eq 'SCALAR' ? $data : \$data,
-        $info));
+    my @medias = ();
+    if( blessed($data) and $data->isa('Email::Simple') ){
+        push @medias, $data;
+    }else{
+        @medias = ($self->create_media(
+            ref $data eq 'SCALAR' ? $data : \$data,
+            $info));
+    }
 
     # reset vars for depth option
     my $ptr     = 0;
