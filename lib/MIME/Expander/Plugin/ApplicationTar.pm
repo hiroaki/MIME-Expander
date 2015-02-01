@@ -8,7 +8,6 @@ $VERSION = '0.02';
 use parent qw(MIME::Expander::Plugin);
 __PACKAGE__->mk_classdata('ACCEPT_TYPES' => [qw(
     application/tar
-    application/x-tar
     )]);
 
 use Archive::Tar;

@@ -17,7 +17,6 @@ sub read_file {
 
 my $accepts = [qw{
     application/tar
-    application/x-tar
     }];
 
 is_deeply( MIME::Expander::Plugin::ApplicationTar->ACCEPT_TYPES,
@@ -31,7 +30,7 @@ is_deeply( $plg->ACCEPT_TYPES,
 
 # is_acceptable
 ok(   $plg->is_acceptable('application/tar'),'is_acceptable application/tar');
-ok(   $plg->is_acceptable('application/x-tar'),'application/x-tar');
+ok( ! $plg->is_acceptable('application/x-tar'),'application/x-tar');
 ok( ! $plg->is_acceptable('application/gnutar'),'not is_acceptable');
 
 # expand

@@ -17,7 +17,6 @@ sub read_file {
 
 my $accepts = [qw{
     application/gzip
-    application/x-gzip
     }];
 
 is_deeply( MIME::Expander::Plugin::ApplicationGzip->ACCEPT_TYPES,
@@ -31,7 +30,7 @@ is_deeply( $plg->ACCEPT_TYPES,
 
 # is_acceptable
 ok(   $plg->is_acceptable('application/gzip'),'is_acceptable application/gzip');
-ok(   $plg->is_acceptable('application/x-gzip'),'application/x-gzip');
+ok( ! $plg->is_acceptable('application/x-gzip'),'application/x-gzip');
 ok( ! $plg->is_acceptable('application/zip'),'not is_acceptable');
 
 # expand
