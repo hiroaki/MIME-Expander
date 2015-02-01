@@ -3,7 +3,7 @@ package MIME::Expander::Guess;
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 sub type {
     my $class = shift;
@@ -20,7 +20,7 @@ __END__
 
 =head1 NAME
 
-MIME::Expander::Guess - An interface of class which determine a mime type.
+MIME::Expander::Guess - An interface of classes determine mime type.
 
 =head1 SYNOPSIS
 

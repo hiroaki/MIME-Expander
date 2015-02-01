@@ -3,7 +3,7 @@ package MIME::Expander::Guess::MMagic;
 use strict;
 use warnings;
 use vars qw($VERSION);
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 use parent qw(MIME::Expander::Guess);
 use File::MMagic;

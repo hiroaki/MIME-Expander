@@ -260,7 +260,7 @@ __END__
 
 =head1 NAME
 
-MIME::Expander - Expands archived, compressed or multi-parted file by MIME mechanism
+MIME::Expander - Walks through all the MIME parts expanded recursively in a message
 
 =head1 SYNOPSIS
 
@@ -268,22 +268,24 @@ MIME::Expander - Expands archived, compressed or multi-parted file by MIME mecha
     use IO::All;
     
     my $callback = sub {
-            my $em = shift; # is an Email::MIME object
-            $em->body_raw > io( $em->filename );
+            my $em = shift; # is instance of Email::MIME
+            $em->body > io( $em->filename );
         };
     
     my $exp = MIME::Expander->new;
-    my $num_contents = $exp->walk( io($ARGV[0])->all, $callback );
+    my $num = $exp->walk( io($ARGV[0])->all, $callback );
     
-    print "total $num_contents are expanded.\n";
+    print "total $num files are expanded.\n";
 
 =head1 DESCRIPTION
 
-MIME::Expander is an utility module that expands archived, compressed or multi-parted file by MIME mechanism.
+MIME::Expander is an utility module that works like the Email::MIME::walk method.
+Feature of this module is that all the parts passing to the callback, are expanded by MIME mechanism.
+It expands archived, compressed or multi-parted message using various MIME::Expander::Plugin modules.
 
 =head1 CONSTRUCTOR AND ACCESSORS
 
-The constructor new() creates an instance, and accepts a reference of hash as configurations.
+The constructor new() accepts a reference of hash as configurations.
 
 Following key of hash are available, and there is an access method of a same name.
 
@@ -402,35 +404,23 @@ Get an instance of the expander class for mime type "$type".
 
 Please see also the PLUGIN section.
 
-=head2 walk( \$data, $callback )
+=head2 create_media( \$contents )
 
-If the $data which can be expanded in the inputted data exists,
-it will be expanded and passed to callback.
+Create an instance of Email::MIME from $contents.
+If $contents does not look like a valid syntax of email,
+it is as an attachment.
 
-The expanded data are further checked and processed recursively.
+=head2 walk( \$message, $callback )
 
-The recursive depth is to the level of the value of "depth" field.
-
-A media object which is a L<Email::MIME>, is passed to the callback routine, 
-They are the results of this module. 
-
-As the work, it sometimes often saves.
-However the file name may not be obtained with the specification of expander module.
-But it may be used, since it is set to "filename" attribute when it exists.
-
-    $me->walk( \$data, sub {
-            my $email = shift;
-            my $name  = $email->filename;
-            open my $fh, ">$name" or die;
-            $fh->print($email->body_raw);
-            close $fh;
-        });
+Walks through all the MIME parts expanded recursively in a $message.
+If the $message includes expandable contents,
+the callback will accept each MIME parts as instance of L<Email::MIME>.
+Or $message does not have parts, the callback will accept $message own.
 
 See also L<Email::MIME> about $email object.
 
-Only this $email object has rules on this MIME::Expander utility class.
-The expanded data is set to "body" and the Content-Transfer-Encoding is "binary".
-Therefore, in order to take out the expanded contents, please use "body_raw" method.
+Note that the expanded data are further checked and processed recursively.
+And the recursive depth is to the level of the value of "depth" field.
 
 =head1 PLUGIN
 
@@ -440,7 +430,7 @@ Please see L<MIME::Expander::Plugin> for details.
 
 =head1 CAVEATS
 
-This version only implements in-memory decompression.
+This module implements in-memory decompression.
 
 =head1 REPOSITORY
 
@@ -458,5 +448,7 @@ it under the same terms as Perl itself.
 =head1 SEE ALSO
 
 L<Email::MIME>
+
+L<MIME::Type>
 
 =cut

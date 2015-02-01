@@ -60,8 +60,8 @@ MIME::Expander::Plugin::ApplicationZip - a plugin for MIME::Expander
 =head1 SYNOPSIS
 
     my $expander = MIME::Expander::Plugin::ApplicationZip->new;
-    $expander->expand(\$data, sub {
-            my $ref_expanded_data = shift;
+    $expander->expand($part, sub {
+            my $contents = shift;
             my $metadata = shift || {};
             print $metadata->{content_type}, "\n";
             print $metadata->{filename}, "\n";
